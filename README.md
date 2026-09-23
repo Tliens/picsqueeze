@@ -1,5 +1,7 @@
 # PicSqueeze
 
+<img src="cat-icon.svg" width="72" alt="PicSqueeze cat logo">
+
 Free, private, batch image compression — entirely in your browser. **No uploads, ever.**
 
 **Live site:** https://tliens.github.io/picsqueeze/
