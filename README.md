@@ -39,6 +39,10 @@ python3 -m http.server 8748
 # http://localhost:8748/index.html
 ```
 
+## Credits
+
+Cat favicon & Product Hunt thumbnail: the `cat` icon from [HugeIcons](https://hugeicons.com/) (CC BY 4.0). Engines and libraries are credited in the footer and linked above.
+
 ## License
 
 MIT for PicSqueeze's own code. The engines keep their original licenses (see links above).
