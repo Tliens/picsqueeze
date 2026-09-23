@@ -1,0 +1,1411 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PicSqueeze — Free Online Image Compressor · Batch 20 · 100% Private</title>
+<meta name="description" content="Compress JPEG, PNG & WebP images in your browser. Batch up to 20 images, target a file size in KB, convert formats. Powered by MozJPEG, OxiPNG & libwebp (open-source WASM). No uploads — images never leave your device.">
+<meta name="keywords" content="image compressor, compress jpeg, compress png, webp converter, batch image compression, reduce image size, free image optimizer">
+<link rel="canonical" href="https://tliens.github.io/picsqueeze/">
+<link rel="alternate" hreflang="en" href="https://tliens.github.io/picsqueeze/">
+<link rel="alternate" hreflang="zh" href="https://tliens.github.io/picsqueeze/?lang=zh">
+<link rel="alternate" hreflang="x-default" href="https://tliens.github.io/picsqueeze/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="PicSqueeze — Free Online Image Compressor">
+<meta property="og:description" content="Batch compress up to 20 JPEG/PNG/WebP images right in your browser. Target a KB size, convert formats, compare quality. 100% private — no uploads.">
+<meta property="og:url" content="https://tliens.github.io/picsqueeze/">
+<meta property="og:image" content="https://tliens.github.io/picsqueeze/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PicSqueeze — Free Online Image Compressor">
+<meta name="twitter:description" content="Batch compress 20 images at once, in your browser. MozJPEG · OxiPNG · libwebp. No uploads.">
+<meta name="twitter:image" content="https://tliens.github.io/picsqueeze/og-image.png">
+<meta name="theme-color" content="#5b5bd6">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%235b5bd6'/%3E%3Cpath d='M20 24h24v20a4 4 0 0 1-4 4H24a4 4 0 0 1-4-4V24z' fill='%23fff' opacity='.92'/%3E%3Cpath d='M32 6v9m0 34v9M13 32h9m20 0h9' stroke='%23fff' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M26.5 13.5L32 19l5.5-5.5' stroke='%23fff' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cpath d='M26.5 50.5L32 45l5.5 5.5' stroke='%23fff' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "PicSqueeze",
+      "url": "https://tliens.github.io/picsqueeze/",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Any (browser)",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "description": "Free browser-based batch image compressor supporting JPEG, PNG and WebP. Compress up to 20 images at once with target file size, quality control and format conversion. All processing happens locally in the browser using open-source engines (MozJPEG, OxiPNG, libwebp) — no uploads.",
+      "featureList": "Batch compress up to 20 images, Smart compression mode, Target file size (KB), Manual quality slider, JPEG/PNG/WebP output conversion, Image resizing, Before/after comparison, SSIM quality score, EXIF metadata removal"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Are my images uploaded to a server?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. PicSqueeze runs entirely in your browser using WebAssembly. Your images never leave your device — you can even disconnect from the internet after loading the page." }
+        },
+        {
+          "@type": "Question",
+          "name": "How many images can I compress at once?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Up to 20 images per batch. You can compress as many batches as you like." }
+        },
+        {
+          "@type": "Question",
+          "name": "What compression engines does PicSqueeze use?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Open-source engines compiled to WebAssembly: MozJPEG for JPEG, OxiPNG for PNG, and libwebp for WebP — the same engines behind Google's Squoosh, with additional tuning such as skip-if-larger protection and dimension-aware quality." }
+        },
+        {
+          "@type": "Question",
+          "name": "Does compression remove EXIF and GPS metadata?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Re-encoding strips EXIF, GPS location and other metadata from your images, which is a privacy win when sharing photos." }
+        },
+        {
+          "@type": "Question",
+          "name": "How does Target Size mode work?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Enter a size in KB and PicSqueeze binary-searches the best quality that fits under your target. If quality reduction alone isn't enough, it gradually downscales the image until it fits." }
+        }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+:root{
+  --bg:#f6f7fb; --bg2:#eceef6; --card:#ffffff; --card2:#f2f3fa;
+  --text:#181a26; --muted:#5d6274; --border:#dfe2ee; --border2:#cdd1e2;
+  --accent:#5b5bd6; --accent2:#8b5bd6; --accent-soft:#eeeefc;
+  --good:#0f8a4d; --good-bg:#e5f6ec; --warn:#a05a00; --warn-bg:#fdf1dc;
+  --bad:#c2334d; --bad-bg:#fbe7eb; --info:#1c6fb8; --info-bg:#e4f1fb;
+  --shadow:0 1px 2px rgba(20,22,40,.05),0 8px 24px rgba(20,22,40,.07);
+  --radius:14px;
+}
+html[data-theme="dark"]{
+  --bg:#0f1118; --bg2:#161927; --card:#191d2b; --card2:#202437;
+  --text:#e8eaf4; --muted:#9aa0b8; --border:#2a2f45; --border2:#3a4060;
+  --accent:#8686f0; --accent2:#b07df0; --accent-soft:#23244a;
+  --good:#4ade80; --good-bg:#12301f; --warn:#fbbf24; --warn-bg:#332610;
+  --bad:#fb7185; --bad-bg:#3a1520; --info:#7dd3fc; --info-bg:#0f2a3d;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto} *{animation:none!important;transition:none!important}}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font:inherit;cursor:pointer}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.hrow{display:flex;align-items:center;gap:14px;height:60px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;color:var(--text);letter-spacing:-.2px}
+.logo:hover{text-decoration:none}
+.logo svg{display:block}
+.header-note{color:var(--muted);font-size:12.5px;border:1px solid var(--border);border-radius:99px;padding:3px 10px;white-space:nowrap}
+.hspace{flex:1}
+.hbtn{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:6px 11px;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.hbtn:hover{border-color:var(--border2);background:var(--card2)}
+.hbtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ---------- hero ---------- */
+.hero{text-align:center;padding:44px 0 10px}
+.hero h1{font-size:clamp(26px,4.6vw,40px);line-height:1.15;letter-spacing:-.5px;margin:0 0 12px}
+.hero h1 .grad{background:linear-gradient(92deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.sub{color:var(--muted);font-size:16px;max-width:640px;margin:0 auto 18px}
+.badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:6px}
+.badge{font-size:12.5px;font-weight:600;border:1px solid var(--border);background:var(--card);border-radius:99px;padding:4px 12px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.badge .dot{width:7px;height:7px;border-radius:99px;background:var(--good)}
+
+/* ---------- app card ---------- */
+.app{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:22px;margin:26px 0 40px}
+#dropzone{
+  border:2px dashed var(--border2);border-radius:var(--radius);padding:38px 20px;text-align:center;
+  cursor:pointer;transition:border-color .15s,background .15s;background:var(--card2);
+}
+#dropzone:hover,#dropzone.drag{border-color:var(--accent);background:var(--accent-soft)}
+#dropzone .dz-icon{font-size:34px;line-height:1;margin-bottom:10px}
+#dropzone .dz-main{font-weight:700;font-size:16.5px}
+#dropzone .dz-sub{color:var(--muted);font-size:13.5px;margin-top:6px}
+#dropzone kbd{background:var(--card);border:1px solid var(--border2);border-bottom-width:2px;border-radius:5px;padding:0 5px;font-size:12px;font-family:inherit}
+.filebar{display:none;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;font-size:13.5px}
+.filebar.show{display:flex}
+.filebar .cnt{font-weight:700}
+.filebar .addmore{color:var(--accent);cursor:pointer;background:none;border:none;padding:0;font-size:13.5px}
+.filebar .addmore:hover{text-decoration:underline}
+
+/* ---------- settings ---------- */
+.settings{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px}
+.set{border:1px solid var(--border);border-radius:12px;padding:12px 13px;background:var(--card2)}
+.set label.t{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:9px}
+.seg{display:flex;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:3px;gap:3px;flex-wrap:wrap}
+.seg button{flex:0 1 auto;min-width:52px;border:none;background:transparent;color:var(--muted);border-radius:6px;padding:6px 9px;font-size:13px;font-weight:600;white-space:nowrap;text-align:center}
+.seg button.on{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(91,91,214,.4)}
+.seg button:not(.on):hover{color:var(--text);background:var(--card2)}
+.set .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.45}
+.set input[type=number]{width:92px;font:inherit;padding:6px 8px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--text)}
+.qrow{display:flex;align-items:center;gap:12px}
+.qrow input[type=range]{flex:1;accent-color:var(--accent)}
+.qrow .qval{font-weight:800;font-variant-numeric:tabular-nums;min-width:38px;text-align:right}
+details.adv{margin-top:14px;border:1px solid var(--border);border-radius:12px;background:var(--card2)}
+details.adv summary{cursor:pointer;padding:11px 14px;font-size:13.5px;font-weight:700;color:var(--muted);list-style:none;display:flex;align-items:center;gap:8px}
+details.adv summary::before{content:"▸";transition:transform .15s}
+details.adv[open] summary::before{transform:rotate(90deg)}
+.advgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;padding:2px 14px 14px}
+.advgrid .set{background:var(--card)}
+.chk{display:flex;align-items:center;gap:9px;font-size:13.5px;padding:7px 0;cursor:pointer}
+.chk input{width:16px;height:16px;accent-color:var(--accent)}
+
+/* ---------- actions & progress ---------- */
+.actions{display:flex;gap:12px;align-items:center;margin-top:18px;flex-wrap:wrap}
+.btn-primary{
+  background:linear-gradient(92deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:11px;
+  padding:12px 26px;font-size:15.5px;font-weight:700;box-shadow:0 4px 14px rgba(91,91,214,.35);
+  transition:transform .12s,box-shadow .12s;display:inline-flex;align-items:center;gap:9px;
+}
+.btn-primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 20px rgba(91,91,214,.45)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn-primary.cancel{background:var(--bad);box-shadow:none}
+.btn-ghost{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:11px;padding:11px 18px;font-size:14px;font-weight:600}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text)}
+.actions .note{color:var(--muted);font-size:12.5px}
+.progress{display:none;margin-top:16px}
+.progress.show{display:block}
+.progress .bar{height:8px;background:var(--card2);border:1px solid var(--border);border-radius:99px;overflow:hidden}
+.progress .fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;transition:width .25s}
+.progress .ptext{font-size:12.5px;color:var(--muted);margin-top:7px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+
+/* ---------- results ---------- */
+.summary{display:none;margin-top:20px;background:linear-gradient(92deg,var(--accent-soft),color-mix(in srgb,var(--accent-soft) 55%,var(--card)));border:1px solid var(--border);border-radius:12px;padding:14px 16px;align-items:center;gap:16px;flex-wrap:wrap}
+.summary.show{display:flex}
+.summary .big{font-size:19px;font-weight:800}
+.summary .big .saved{color:var(--good)}
+.summary .meta{color:var(--muted);font-size:13px}
+.summary .dl-all{margin-left:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:13px;margin-top:14px}
+.card{border:1px solid var(--border);border-radius:12px;background:var(--card);padding:13px;display:flex;gap:12px;position:relative;overflow:hidden}
+.card .thumb{width:76px;height:76px;border-radius:9px;object-fit:cover;background:var(--card2);border:1px solid var(--border);flex:none;cursor:zoom-in}
+.card .body{flex:1;min-width:0}
+.card .name{font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .nums{font-size:12.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
+.card .nums b{color:var(--text)}
+.card .engine{font-size:11.5px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .row2{display:flex;align-items:center;gap:7px;margin-top:8px;flex-wrap:wrap}
+.pill{font-size:11px;font-weight:700;border-radius:99px;padding:2.5px 9px;letter-spacing:.2px}
+.pill.ok{background:var(--good-bg);color:var(--good)}
+.pill.keep{background:var(--info-bg);color:var(--info)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.err{background:var(--bad-bg);color:var(--bad)}
+.pill.queue{background:var(--card2);color:var(--muted);border:1px solid var(--border)}
+.pill.fmt{background:var(--accent-soft);color:var(--accent)}
+.card .acts{display:flex;gap:6px;margin-left:auto}
+.card .acts button{border:1px solid var(--border);background:var(--card);border-radius:7px;padding:4px 9px;font-size:12px;color:var(--muted)}
+.card .acts button:hover{color:var(--text);border-color:var(--border2)}
+.card .acts button:disabled{opacity:.4;cursor:not-allowed}
+.empty-note{display:none;text-align:center;color:var(--muted);font-size:13.5px;padding:26px 0 6px}
+
+/* ---------- info sections ---------- */
+section.info{margin:38px 0}
+section.info h2{font-size:22px;letter-spacing:-.3px;margin:0 0 6px}
+section.info .lead{color:var(--muted);margin:0 0 18px;font-size:14.5px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:13px}
+.tile{border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--card)}
+.tile h3{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
+.tile p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.65}
+.tile code{background:var(--card2);border:1px solid var(--border);border-radius:5px;padding:0 5px;font-size:12px}
+table.tune{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+table.tune th,table.tune td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+table.tune th{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+table.tune tr:last-child td{border-bottom:none}
+table.tune td:first-child{font-weight:700;white-space:nowrap}
+details.faq{border:1px solid var(--border);border-radius:12px;background:var(--card);margin-bottom:9px}
+details.faq summary{cursor:pointer;padding:14px 16px;font-weight:700;font-size:14.5px;list-style:none;display:flex;justify-content:space-between;gap:10px;align-items:center}
+details.faq summary::after{content:"+";color:var(--muted);font-size:19px;font-weight:400;flex:none}
+details.faq[open] summary::after{content:"–"}
+details.faq .a{padding:0 16px 15px;color:var(--muted);font-size:14px;line-height:1.7}
+details.faq .a b{color:var(--text)}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--border);padding:26px 0 40px;margin-top:26px;color:var(--muted);font-size:13px}
+footer .frow{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+footer a{color:var(--muted)}
+footer a:hover{color:var(--accent)}
+
+/* ---------- toasts ---------- */
+#toasts{position:fixed;top:70px;right:16px;z-index:100;display:flex;flex-direction:column;gap:8px;max-width:min(360px,90vw)}
+.toast{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;box-shadow:var(--shadow);padding:11px 14px;font-size:13.5px;animation:tin .2s ease}
+.toast.err{border-left-color:var(--bad)}
+.toast.warn{border-left-color:var(--warn)}
+@keyframes tin{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+
+/* ---------- compare modal ---------- */
+#cmp{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;background:rgba(10,10,18,.72);backdrop-filter:blur(4px);padding:22px}
+#cmp.show{display:flex}
+.cmp-box{background:var(--card);border:1px solid var(--border);border-radius:16px;max-width:min(980px,96vw);width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+.cmp-head{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.cmp-head .nm{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40%}
+.cmp-head .st{color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
+.cmp-head button{margin-left:auto;border:1px solid var(--border);background:var(--card2);border-radius:8px;padding:5px 12px;font-size:13px;color:var(--text)}
+.cmp-stage{position:relative;flex:1;overflow:auto;background:repeating-conic-gradient(color-mix(in srgb,var(--muted) 14%,transparent) 0 25%,transparent 0 50%) 0 0/22px 22px;display:flex;align-items:center;justify-content:center;min-height:340px}
+.cmp-stage img{display:block;max-width:none;user-select:none;-webkit-user-drag:none}
+.cmp-stage.fit img{max-width:100%;max-height:78vh;width:auto;height:auto}
+#cmpAfterWrap{position:absolute;overflow:hidden;pointer-events:none}
+#cmpAfterWrap::after{content:"";position:absolute;top:0;bottom:0;right:-2px;width:3px;background:rgba(255,255,255,.9);box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.cmp-slider{display:flex;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid var(--border)}
+.cmp-slider input{flex:1;accent-color:var(--accent)}
+.cmp-slider .tag{font-size:12px;font-weight:700;color:var(--muted);min-width:52px}
+
+@media (max-width:640px){
+  .hero{padding-top:30px}
+  .app{padding:15px}
+  .header-note{display:none}
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap hrow">
+    <a class="logo" href="#" aria-label="PicSqueeze home">
+      <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#5b5bd6"/><path d="M20 24h24v20a4 4 0 0 1-4 4H24a4 4 0 0 1-4-4V24z" fill="#fff" opacity=".92"/><path d="M32 6v9m0 34v9M13 32h9m20 0h9" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path d="M26.5 13.5L32 19l5.5-5.5M26.5 50.5L32 45l5.5 5.5" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      PicSqueeze
+    </a>
+    <span class="header-note" data-i18n="hdg_note">100% in your browser · no uploads</span>
+    <div class="hspace"></div>
+    <button id="btnLang" class="hbtn" aria-label="Switch language">中文</button>
+    <button id="btnTheme" class="hbtn" aria-label="Toggle dark mode">🌗</button>
+    <a class="hbtn" href="https://github.com/jamsinclair/jSquash" target="_blank" rel="noopener" title="Powered by jSquash (open source)">★ GitHub</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1><span data-i18n="hero_t1">Compress images</span> <span class="grad" data-i18n="hero_t2">right in your browser</span></h1>
+    <p class="sub" data-i18n="hero_sub">Batch up to 20 JPEG, PNG or WebP images. Hit an exact KB target, convert formats, compare quality — your files never leave your device.</p>
+    <div class="badges" aria-hidden="false">
+      <span class="badge"><span class="dot"></span><span data-i18n="bdg_priv">No uploads · works offline</span></span>
+      <span class="badge">MozJPEG</span>
+      <span class="badge">OxiPNG</span>
+      <span class="badge">libwebp</span>
+      <span class="badge" data-i18n="bdg_oss">Open-source WASM engines</span>
+    </div>
+  </section>
+
+  <section class="app" aria-label="Compressor">
+    <div id="dropzone" role="button" tabindex="0" aria-labelledby="dzMain">
+      <div class="dz-icon">🖼️</div>
+      <div class="dz-main" id="dzMain" data-i18n="dz_main">Drop up to 20 images here — or click to browse</div>
+      <div class="dz-sub"><span data-i18n="dz_sub1">JPEG · PNG · WebP · GIF · AVIF · BMP</span> · <span data-i18n="dz_sub2">you can also paste with</span> <kbd>Ctrl/⌘</kbd>+<kbd>V</kbd></div>
+      <input type="file" id="fileInput" multiple accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/bmp,image/svg+xml,.jpg,.jpeg,.png,.webp,.gif,.avif,.bmp,.svg" hidden>
+    </div>
+
+    <div class="filebar" id="filebar">
+      <span class="cnt" id="fileCount">0/20</span>
+      <span id="fileTotal">0 B</span>
+      <button class="addmore" id="btnAddMore" data-i18n="fb_add">+ add more</button>
+      <div style="flex:1"></div>
+      <button class="addmore" id="btnClear" data-i18n="fb_clear">clear all</button>
+    </div>
+
+    <div class="settings">
+      <div class="set">
+        <label class="t">⚙️ <span data-i18n="set_mode">Mode</span></label>
+        <div class="seg" id="segMode" role="group" aria-label="Mode">
+          <button data-v="smart" class="on" data-i18n="mode_smart">Smart</button>
+          <button data-v="target" data-i18n="mode_target">Target size</button>
+          <button data-v="manual" data-i18n="mode_manual">Quality</button>
+        </div>
+        <div class="hint" id="modeHint" data-i18n="hint_smart">Finds the sweet spot automatically. Files that wouldn't get smaller are left untouched.</div>
+        <div id="presetRow" style="margin-top:9px">
+          <div class="seg" id="segPreset" role="group" aria-label="Preset">
+            <button data-v="high" data-i18n="pre_high">High quality</button>
+            <button data-v="balanced" class="on" data-i18n="pre_bal">Balanced</button>
+            <button data-v="extreme" data-i18n="pre_ext">Max savings</button>
+          </div>
+        </div>
+        <div id="targetRow" style="display:none;margin-top:9px">
+          <label style="font-size:12.5px;color:var(--muted)" for="targetKB" data-i18n="lbl_target">Each image under</label>
+          <div style="display:flex;align-items:center;gap:7px;margin-top:5px">
+            <input type="number" id="targetKB" min="5" max="10240" step="5" value="200"> <span style="font-weight:700">KB</span>
+          </div>
+        </div>
+        <div id="qualityRow" style="display:none;margin-top:9px">
+          <div class="qrow">
+            <input type="range" id="qualityRange" min="30" max="100" value="80" aria-label="Quality">
+            <span class="qval" id="qualityVal">80</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="set">
+        <label class="t">🔁 <span data-i18n="set_fmt">Output format</span></label>
+        <div class="seg" id="segFmt" role="group" aria-label="Output format">
+          <button data-v="auto" class="on" data-i18n="fmt_auto">Auto</button>
+          <button data-v="jpeg">JPEG</button>
+          <button data-v="png">PNG</button>
+          <button data-v="webp">WebP</button>
+        </div>
+        <div class="hint" id="fmtHint" data-i18n="hint_fmt">Auto keeps each image's format. WebP usually compresses 25–35% smaller than JPEG at the same visual quality.</div>
+      </div>
+
+      <div class="set">
+        <label class="t">📐 <span data-i18n="set_dim">Max dimension</span></label>
+        <div class="seg" id="segDim" role="group" aria-label="Max dimension">
+          <button data-v="0" class="on" data-i18n="dim_orig">Original</button>
+          <button data-v="2560">2560px</button>
+          <button data-v="1920">1920px</button>
+          <button data-v="1280">1280px</button>
+          <button data-v="800">800px</button>
+        </div>
+        <div class="hint" data-i18n="hint_dim">Large photos for the web rarely need more than 1920px. Resizing uses progressive half-stepping to keep details crisp.</div>
+      </div>
+    </div>
+
+    <details class="adv">
+      <summary data-i18n="adv_title">Advanced engine tuning</summary>
+      <div class="advgrid">
+        <label class="chk"><input type="checkbox" id="chkSkipLarger" checked> <span data-i18n="adv_skip">Skip-if-larger guard (recommended)</span></label>
+        <label class="chk"><input type="checkbox" id="chkProgressive" checked> <span data-i18n="adv_prog">JPEG progressive + optimized Huffman</span></label>
+        <label class="chk"><input type="checkbox" id="chkSharpYuv" checked> <span data-i18n="adv_sharp">WebP sharp YUV (crisper edges, slower)</span></label>
+        <div class="set" style="background:var(--card)">
+          <label class="t" for="selOxi">🧊 OxiPNG effort</label>
+          <div class="seg" id="segOxi" role="group" aria-label="OxiPNG effort">
+            <button data-v="1" data-i18n="oxi_fast">Fast</button>
+            <button data-v="2" class="on" data-i18n="oxi_bal">Balanced</button>
+            <button data-v="4" data-i18n="oxi_max">Max</button>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <div class="actions">
+      <button class="btn-primary" id="btnGo" disabled>⚡ <span data-i18n="btn_go">Compress 20 images</span></button>
+      <button class="btn-ghost" id="btnCancel" style="display:none" data-i18n="btn_cancel">Cancel</button>
+      <span class="note" id="actNote" data-i18n="act_note">Nothing is uploaded — compression runs on this device via WebAssembly.</span>
+    </div>
+
+    <div class="progress" id="progress">
+      <div class="bar"><div class="fill" id="progFill"></div></div>
+      <div class="ptext"><span id="progText"></span><span id="progEta"></span></div>
+    </div>
+
+    <div class="summary" id="summary">
+      <span class="big" id="sumBig"></span>
+      <span class="meta" id="sumMeta"></span>
+      <button class="btn-primary dl-all" id="btnZip" style="padding:9px 18px;font-size:13.5px">📦 <span data-i18n="btn_zip">Download all (.zip)</span></button>
+    </div>
+    <div class="empty-note" id="emptyNote" data-i18n="empty_note">Add images to get started — everything stays on your machine.</div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section class="info" id="how">
+    <h2 data-i18n="how_h">How the compression works</h2>
+    <p class="lead" data-i18n="how_lead">PicSqueeze compiles the same open-source encoders used by Google's Squoosh to WebAssembly, then adds its own tuning layer on top. Here is exactly what happens to your files:</p>
+    <div class="cols">
+      <div class="tile">
+        <h3>🧠 Smart mode</h3>
+        <p data-i18n="how_smart">Quality is chosen by resolution: full-resolution photos get a slightly more aggressive quality than small UI assets, because size hides detail. Every result is checked against the original — if the output isn't smaller, the original file is returned untouched (skip-if-larger).</p>
+      </div>
+      <div class="tile">
+        <h3>🎯 Target size</h3>
+        <p data-i18n="how_target">Binary search over the quality range (≤ 8 probes) finds the highest quality that stays under your KB budget. If quality alone can't get there, the image is downscaled in small steps until it fits — and the result is labeled so you know.</p>
+      </div>
+      <div class="tile">
+        <h3>🔬 Quality score</h3>
+        <p data-i18n="how_ssim">Each result gets an SSIM quality score computed against the original — a perceptual metric (0–100%) that approximates what your eyes would notice, so you can trust the savings without pixel-peeping.</p>
+      </div>
+    </div>
+    <table class="tune">
+      <thead><tr><th data-i18n="t_engine">Engine</th><th data-i18n="t_used_for">Used for</th><th data-i18n="t_tuning">Tuning applied</th></tr></thead>
+      <tbody>
+        <tr><td>MozJPEG</td><td>JPEG encode</td><td data-i18n="t_moz">Progressive scan, optimized Huffman coding, trellis quantization-table search, dimension-aware quality (76 / 72 / 80 rules)</td></tr>
+        <tr><td>OxiPNG</td><td>PNG (lossless)</td><td data-i18n="t_oxi">Real lossless optimization — filter & compression-strategy search, alpha channel optimization, 3 effort presets. Pixels stay 100% identical.</td></tr>
+        <tr><td>libwebp</td><td>WebP encode</td><td data-i18n="t_webp">Method 5+ encoding, sharp YUV conversion for crisper chroma edges, auto-filter under low quality, SIMD build when available</td></tr>
+        <tr><td>🛡️ Guards</td><td>—</td><td data-i18n="t_guard">Skip-if-larger · EXIF/GPS metadata always stripped · 36 MP memory guard · progressive half-step resizing</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="info" id="faq">
+    <h2>FAQ</h2>
+    <p class="lead" data-i18n="faq_lead">Short answers to the questions people actually ask.</p>
+    <div id="faqList"></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="frow">
+      <span>© 2026 PicSqueeze</span>
+      <a href="https://github.com/jamsinclair/jSquash" target="_blank" rel="noopener">jSquash</a>
+      <a href="https://github.com/mozilla/mozjpeg" target="_blank" rel="noopener">MozJPEG</a>
+      <a href="https://github.com/shssoichiro/oxipng" target="_blank" rel="noopener">OxiPNG</a>
+      <a href="https://github.com/webmproject/libwebp" target="_blank" rel="noopener">libwebp</a>
+      <a href="https://github.com/101arrowz/fflate" target="_blank" rel="noopener">fflate</a>
+      <a href="https://github.com/GoogleChromeLabs/squoosh" target="_blank" rel="noopener">Squoosh</a>
+    </div>
+    <p style="margin-top:12px" data-i18n="foot_note">Free, open-source image compression that respects your privacy. Your photos are processed locally with WebAssembly and are never uploaded to any server.</p>
+  </div>
+</footer>
+
+<div id="toasts" aria-live="polite"></div>
+
+<div id="cmp" role="dialog" aria-modal="true" aria-label="Compare before and after">
+  <div class="cmp-box">
+    <div class="cmp-head">
+      <span class="nm" id="cmpName"></span>
+      <span class="st" id="cmpStats"></span>
+      <button id="btnCmpClose">✕ <span data-i18n="cmp_close">Close</span></button>
+    </div>
+    <div class="cmp-stage fit" id="cmpStage">
+      <img id="cmpBefore" alt="Original">
+      <div id="cmpAfterWrap"><img id="cmpAfter" alt="Compressed"></div>
+    </div>
+    <div class="cmp-slider">
+      <span class="tag" data-i18n="cmp_before">BEFORE</span>
+      <input type="range" id="cmpRange" min="0" max="100" value="50" aria-label="Comparison slider">
+      <span class="tag" data-i18n="cmp_after">AFTER</span>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== compression engine (runs in a module Worker) ==================== -->
+<script type="text/engine" id="engineSrc">
+'use strict';
+// CDN loader with automatic fallback jsdelivr -> unpkg (verified: both send CORS * and correct wasm MIME)
+const SOURCES = [
+  (p) => 'https://cdn.jsdelivr.net/npm' + p,
+  (p) => 'https://unpkg.com' + p,
+];
+let srcIdx = 0;
+const loaded = new Map();
+async function loadGlue(path) {
+  if (loaded.has(path)) return loaded.get(path);
+  let lastErr;
+  for (let i = 0; i < SOURCES.length; i++) {
+    const idx = (srcIdx + i) % SOURCES.length;
+    try {
+      const mod = await import(SOURCES[idx](path));
+      srcIdx = idx; // sticky: once a source works, prefer it
+      loaded.set(path, mod);
+      return mod;
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr;
+}
+
+const V = { jpeg: '@jsquash/jpeg@1.6.0', oxipng: '@jsquash/oxipng@2.3.0', webp: '@jsquash/webp@1.5.0' };
+let jpegEnc = null, webpEnc = null, webpEncSimd = null, oxiInit = null, oxiOptimise = null, oxiRaw = null, wantSimd = null;
+
+function simdSupported() {
+  if (wantSimd !== null) return wantSimd;
+  const probe = new Uint8Array([0,97,115,109,1,0,0,0,1,5,1,96,0,1,123,3,2,1,0,10,10,1,8,0,65,0,253,15,253,98,11]);
+  wantSimd = WebAssembly.validate(probe);
+  return wantSimd;
+}
+async function ensureEngines() {
+  if (!jpegEnc) {
+    const m = await loadGlue(`/${V.jpeg}/codec/enc/mozjpeg_enc.js`);
+    jpegEnc = await m.default(); // emscripten factory: wasm resolves relative to glue URL on the CDN
+  }
+  if (!oxiInit) {
+    const m = await loadGlue(`/${V.oxipng}/codec/pkg/squoosh_oxipng.js`);
+    oxiInit = m.default; oxiOptimise = m.optimise; oxiRaw = m.optimise_raw;
+    await oxiInit(); // wasm-bindgen: fetches sibling wasm via import.meta.url
+  }
+  if (!webpEnc) {
+    if (simdSupported()) {
+      const m = await loadGlue(`/${V.webp}/codec/enc/webp_enc_simd.js`);
+      webpEncSimd = await m.default();
+    } else {
+      const m = await loadGlue(`/${V.webp}/codec/enc/webp_enc.js`);
+      webpEnc = await m.default();
+    }
+  }
+}
+const WEBP_DEFAULTS = { quality:75,target_size:0,target_PSNR:0,method:4,sns_strength:50,filter_strength:60,filter_sharpness:0,filter_type:1,partitions:0,segments:4,pass:1,show_compressed:0,preprocessing:0,autofilter:0,partition_limit:0,alpha_compression:1,alpha_filtering:1,alpha_quality:100,lossless:0,exact:0,image_hint:0,emulate_jpeg_size:0,thread_level:0,low_memory:0,near_lossless:100,use_delta_palette:0,use_sharp_yuv:0 };
+const JPEG_DEFAULTS = { quality:75,baseline:false,arithmetic:false,progressive:true,optimize_coding:true,smoothing:0,color_space:3,quant_table:3,trellis_multipass:false,trellis_opt_zero:false,trellis_opt_table:false,trellis_loops:1,auto_subsample:true,chroma_subsample:2,separate_chroma_quality:false,chroma_quality:75 };
+
+// ---------- image helpers (OffscreenCanvas) ----------
+function makeCanvas(w, h) {
+  const c = new OffscreenCanvas(w, h);
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  return [c, ctx];
+}
+async function decodeBitmap(blob) {
+  try { return await createImageBitmap(blob, { imageOrientation: 'from-image' }); }
+  catch (e) { return await createImageBitmap(blob); }
+}
+// Progressive half-step resize: halving repeatedly preserves more detail than one big jump
+function resizeTo(bitmap, tw, th, flatten) {
+  let [c, ctx] = makeCanvas(bitmap.width, bitmap.height);
+  ctx.drawImage(bitmap, 0, 0);
+  let cw = bitmap.width, ch = bitmap.height;
+  while (cw / 2 >= tw && ch / 2 >= th && cw > 2 && ch > 2) {
+    const [c2, ctx2] = makeCanvas(Math.floor(cw / 2), Math.floor(ch / 2));
+    ctx2.imageSmoothingEnabled = true; ctx2.imageSmoothingQuality = 'high';
+    ctx2.drawImage(c, 0, 0, cw, ch, 0, 0, c2.width, c2.height);
+    c = c2; cw = c2.width; ch = c2.height;
+  }
+  const [cf, ctxf] = makeCanvas(tw, th);
+  if (flatten) { ctxf.fillStyle = '#ffffff'; ctxf.fillRect(0, 0, tw, th); }
+  ctxf.imageSmoothingEnabled = true; ctxf.imageSmoothingQuality = 'high';
+  ctxf.drawImage(c, 0, 0, cw, ch, 0, 0, tw, th);
+  return ctxf.getImageData(0, 0, tw, th);
+}
+function drawExact(source, sw, sh, tw, th, flattenWhite) {
+  const [c, ctx] = makeCanvas(tw, th);
+  if (flattenWhite) { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, tw, th); }
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(source, 0, 0, sw, sh, 0, 0, tw, th);
+  return ctx.getImageData(0, 0, tw, th);
+}
+function hasAlpha(data) { // sampled scan — representative and fast
+  const px = data.data, step = Math.max(4, Math.floor(px.length / 4 / 24000) * 4);
+  for (let i = 3; i < px.length; i += step) if (px[i] < 250) return true;
+  return false;
+}
+
+// ---------- SSIM (8x8 windowed, on luminance downscaled to <=256px) ----------
+function luminance(data, w, h, cap) {
+  const scale = Math.min(1, Math.sqrt(cap * cap / (w * h)));
+  const tw = Math.max(1, Math.round(w * scale)), th = Math.max(1, Math.round(h * scale));
+  const [c, ctx] = makeCanvas(tw, th);
+  const tmp = new ImageData(new Uint8ClampedArray(data.data), data.width, data.height);
+  const [c2, ctx2] = makeCanvas(data.width, data.height);
+  ctx2.putImageData(tmp, 0, 0);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(c2, 0, 0, tw, th);
+  const px = ctx.getImageData(0, 0, tw, th).data;
+  const gray = new Float64Array(tw * th);
+  for (let i = 0, j = 0; i < px.length; i += 4, j++) gray[j] = 0.299 * px[i] + 0.587 * px[i+1] + 0.114 * px[i+2];
+  return [gray, tw, th];
+}
+function ssimScore(dataA, wA, hA, dataB) {
+  try {
+    const [a, w, h] = luminance(dataA, wA, hA, 256);
+    const [b] = luminance(dataB, w, h, 256); // same grid as A
+    const C1 = 6.5025, C2 = 58.5225, win = 8;
+    let total = 0, n = 0;
+    for (let y = 0; y + win <= h; y += win) {
+      for (let x = 0; x + win <= w; x += win) {
+        let ma = 0, mb = 0;
+        for (let j = 0; j < win; j++) for (let i = 0; i < win; i++) { ma += a[(y+j)*w + x+i]; mb += b[(y+j)*w + x+i]; }
+        const N = win * win; ma /= N; mb /= N;
+        let va = 0, vb = 0, cab = 0;
+        for (let j = 0; j < win; j++) for (let i = 0; i < win; i++) {
+          const da = a[(y+j)*w + x+i] - ma, db = b[(y+j)*w + x+i] - mb;
+          va += da * da; vb += db * db; cab += da * db;
+        }
+        va /= N - 1; vb /= N - 1; cab /= N - 1;
+        total += ((2 * ma * mb + C1) * (2 * cab + C2)) / ((ma*ma + mb*mb + C1) * (va + vb + C2));
+        n++;
+      }
+    }
+    return n ? Math.round((total / n) * 1000) / 10 : null;
+  } catch (e) { return null; }
+}
+
+// ---------- tuning layer ----------
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+function smartQuality(pixels, preset, isWebp) {
+  const base = isWebp ? { high: 88, balanced: 80, extreme: 64 } : { high: 84, balanced: 76, extreme: 60 };
+  let q = base[preset] ?? base.balanced;
+  if (pixels > 12e6) q -= 6; else if (pixels > 4e6) q -= 4; else if (pixels < 0.5e6) q += 2;
+  return clamp(q, 40, 96);
+}
+function jpegOpts(q, st) {
+  return { ...JPEG_DEFAULTS, quality: q, chroma_quality: q,
+    progressive: st.progressive, optimize_coding: st.progressive,
+    trellis_opt_table: st.preset !== 'extreme', trellis_loops: st.preset === 'high' ? 2 : 1,
+    smoothing: st.preset === 'extreme' ? 2 : 0 };
+}
+function webpOpts(q, st) {
+  return { ...WEBP_DEFAULTS, quality: q, chroma_quality: undefined,
+    method: st.preset === 'high' ? 6 : 5, pass: st.preset === 'high' ? 6 : 2,
+    use_sharp_yuv: st.sharpYuv ? 1 : 0, autofilter: q < 70 ? 1 : 0,
+    preprocessing: st.preset === 'extreme' ? 1 : 0, alpha_quality: 90 };
+}
+function encodeJpeg(img, q, st) { return new Uint8Array(jpegEnc.encode(img.data, img.width, img.height, jpegOpts(q, st)).buffer); }
+function encodeWebp(img, q, st) {
+  const enc = webpEncSimd || webpEnc;
+  return new Uint8Array(enc.encode(img.data, img.width, img.height, webpOpts(q, st)).buffer);
+}
+async function encodePng(img, st) {
+  const bytes = await oxiRaw(img.data, img.width, img.height, st.oxiLevel, false, true);
+  return new Uint8Array(bytes.buffer ?? bytes);
+}
+async function optimisePngBytes(origBytes, st) {
+  const out = await oxiOptimise(new Uint8Array(origBytes), st.oxiLevel, false, true);
+  return new Uint8Array(out.buffer ?? out);
+}
+const fmtMime = { jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
+
+async function encodeAt(fmt, img, q, st) {
+  if (fmt === 'jpeg') return encodeJpeg(img, q, st);
+  if (fmt === 'webp') return encodeWebp(img, q, st);
+  return encodePng(img, st);
+}
+
+// ---------- per-file pipeline ----------
+const stage = (id, s, extra) => post({ type: 'stage', id, stage: s, ...extra });
+const abortedIds = new Set();
+
+async function processOne(id, buffer, origType, st) {
+  if (abortedIds.has(id)) throw new Error('aborted');
+  stage(id, 'decode');
+  const blob = new Blob([buffer], { type: origType || 'image/png' });
+  const bitmap = await decodeBitmap(blob);
+
+  let w = bitmap.width, h = bitmap.height;
+  const notes = [];
+  let pixels = w * h;
+  // memory guard: > 36MP gets pre-scaled
+  let guardScale = 1;
+  if (pixels > 36e6) { guardScale = Math.sqrt(36e6 / pixels); notes.push('memory-guard'); }
+
+  // output format resolution
+  const origFmt = (t) => t === 'image/jpeg' ? 'jpeg' : t === 'image/png' ? 'png' : t === 'image/webp' ? 'webp' : 'other';
+  let of = origFmt(origType);
+  let outFmt = st.fmt === 'auto' ? (of === 'other' ? 'webp' : of) : st.fmt;
+
+  // alpha detection on a small sample (before any flattening)
+  const [sc, sctx] = makeCanvas(64, Math.max(1, Math.round(64 * h / w)));
+  sctx.drawImage(bitmap, 0, 0, sc.width, sc.height);
+  const alpha = hasAlpha(sctx.getImageData(0, 0, sc.width, sc.height));
+
+  if (st.mode === 'target' && st.fmt === 'auto' && of === 'png' && !alpha && outFmt === 'png') {
+    outFmt = 'jpeg'; // lossless PNG can't chase a KB target — switch and say so
+    notes.push('auto-switched-jpeg');
+  }
+  if (outFmt === 'jpeg' && alpha) notes.push('flattened');
+
+  // target dims
+  let tw = Math.round(w * guardScale), th = Math.round(h * guardScale);
+  if (st.maxDim > 0 && Math.max(w, h) > st.maxDim) {
+    const s = st.maxDim / Math.max(w, h);
+    tw = Math.max(1, Math.round(w * s)); th = Math.max(1, Math.round(h * s));
+  }
+  const resized = tw !== w || th !== h;
+
+  stage(id, resized ? 'resize' : 'encode');
+  let img;
+  const flatten = outFmt === 'jpeg';
+  if (resized || guardScale < 1) img = resizeTo(bitmap, tw, th, flatten);
+  else img = drawExact(bitmap, w, h, tw, th, flatten);
+  if (resized) notes.push(`resized-${w}x${h}`);
+  bitmap.close();
+
+  // pure-lossless fast path: PNG → PNG with no resize, no target: optimize original bytes
+  if (outFmt === 'png' && of === 'png' && !resized && guardScale === 1 && st.mode !== 'target') {
+    stage(id, 'encode');
+    let outBytes = await optimisePngBytes(buffer, st);
+    let status = 'ok';
+    if (outBytes.length >= buffer.byteLength) {
+      if (st.skipLarger) { outBytes = new Uint8Array(buffer); status = 'kept'; }
+    }
+    const blobOut = new Blob([outBytes], { type: fmtMime.png });
+    const dec = await decodeBitmap(blobOut);
+    const outImg = drawExact(dec, tw, th, tw, th, false); dec.close();
+    const ssim = ssimScore(img, tw, th, outImg);
+    return { bytes: outBytes, mime: fmtMime.png, ext: 'png', width: tw, height: th, srcW: w, srcH: h,
+      engine: `OxiPNG L${st.oxiLevel} · lossless`, qUsed: null, ssim, status, notes,
+      bytesIn: buffer.byteLength };
+  }
+
+  const isWebp = outFmt === 'webp';
+  const engineOf = (q) => outFmt === 'jpeg'
+    ? `MozJPEG q${q}${st.progressive ? ' · progressive' : ''}`
+    : outFmt === 'webp'
+      ? `libwebp q${q} · m${st.preset === 'high' ? 6 : 5}${(webpEncSimd ? ' · SIMD' : '')}`
+      : `OxiPNG L${st.oxiLevel} · lossless`;
+
+  async function encodeOnce(q) {
+    if (outFmt === 'png') return encodePng(img, st);
+    return encodeAt(outFmt, img, q, st);
+  }
+
+  let outBytes, qUsed = null;
+  if (st.mode === 'target' && outFmt !== 'png') {
+    stage(id, 'search');
+    const target = st.targetKB * 1024;
+    let lo = 30, hi = isWebp ? 95 : 96, best = null, bestUnder = null;
+    for (let iter = 0; iter < 8; iter++) {
+      if (abortedIds.has(id)) throw new Error('aborted');
+      const mid = Math.round((lo + hi) / 2);
+      const bytes = await encodeOnce(mid);
+      if (!best || bytes.length < best.bytes.length) best = { bytes, q: mid };
+      if (bytes.length <= target) {
+        bestUnder = { bytes, q: mid }; lo = mid + 1;
+        stage(id, 'search', { iter, q: mid, kb: Math.round(bytes.length / 1024) });
+        if (hi - lo < 2) break;
+      } else {
+        hi = mid - 1;
+        stage(id, 'search', { iter, q: mid, kb: Math.round(bytes.length / 1024) });
+      }
+      if (lo > hi) break;
+    }
+    if (bestUnder) { outBytes = bestUnder.bytes; qUsed = bestUnder.q; }
+    else {
+      // quality floor can't reach the target — downscale stepwise and retry
+      let scale = 0.85, attempts = 0;
+      while ((!outBytes || outBytes.length > target) && attempts < 3) {
+        attempts++;
+        const nw = Math.max(16, Math.round(tw * scale)), nh = Math.max(16, Math.round(th * scale));
+        const bmp = await decodeBitmap(blob);
+        img = resizeTo(bmp, nw, nh, outFmt === 'jpeg'); bmp.close();
+        stage(id, 'search', { iter: -attempts, q: hi, kb: null });
+        let lo2 = 30, hi2 = isWebp ? 95 : 96, bu = null;
+        for (let it = 0; it < 6; it++) {
+          if (abortedIds.has(id)) throw new Error('aborted');
+          const mid = Math.round((lo2 + hi2) / 2);
+          const bytes = await encodeOnce(mid);
+          if (bytes.length <= target) { bu = { bytes, q: mid }; lo2 = mid + 1; } else hi2 = mid - 1;
+          if (lo2 > hi2) break;
+        }
+        if (bu) { outBytes = bu.bytes; qUsed = bu.q; tw = nw; th = nh; }
+        scale *= 0.85;
+      }
+      if (outBytes) { notes.push(`downscaled-to-fit-${tw}x${th}`); statusFlag = 'resized'; }
+      else { outBytes = best.bytes; qUsed = best.q; statusFlag = 'missed'; }
+    }
+  } else if (st.mode === 'target' && outFmt === 'png') {
+    // lossless target: best effort, flagged honestly
+    outBytes = await encodePng(img, st);
+    qUsed = null;
+    if (outBytes.length > st.targetKB * 1024) statusFlag = 'missed';
+  } else if (st.mode === 'manual') {
+    qUsed = st.quality;
+    if (outFmt === 'webp' && qUsed >= 100) {
+      outBytes = new Uint8Array((webpEncSimd || webpEnc).encode(img.data, tw, th, { ...WEBP_DEFAULTS, quality: 100, lossless: 1, method: 5, use_sharp_yuv: st.sharpYuv ? 1 : 0 }).buffer);
+      notes.push('webp-lossless');
+    } else outBytes = await encodeOnce(qUsed);
+  } else { // smart
+    qUsed = smartQuality(tw * th, st.preset, isWebp);
+    outBytes = await encodeOnce(qUsed);
+  }
+
+  let status = statusFlag || 'ok';
+  // skip-if-larger guard (same-format re-encodes only; conversions legitimately change size)
+  let engineLabel = engineOf(qUsed ?? 0);
+  if (st.skipLarger && st.mode !== 'target' && outFmt === of && outBytes.length >= buffer.byteLength) {
+    outBytes = new Uint8Array(buffer);
+    status = 'kept';
+    qUsed = null;
+    engineLabel = 'Original file returned · not re-encoded';
+  }
+
+  // SSIM against encoder input (measures encode quality, not resize loss)
+  stage(id, 'score');
+  let ssim = null;
+  try {
+    const blobOut = new Blob([outBytes], { type: fmtMime[outFmt] });
+    const dec = await decodeBitmap(blobOut);
+    const outImg = drawExact(dec, dec.width, dec.height, dec.width, dec.height, false);
+    const cmpW = Math.min(dec.width, tw), cmpH = Math.min(dec.height, th);
+    const a2 = (dec.width === tw && dec.height === th) ? img : drawExact(await decodeBitmap(blob), w, h, dec.width, dec.height, false);
+    ssim = ssimScore(a2, dec.width, dec.height, outImg);
+    dec.close();
+  } catch (e) { /* scoring is best-effort */ }
+
+  return { bytes: outBytes, mime: fmtMime[outFmt], ext: outFmt === 'jpeg' ? 'jpg' : outFmt,
+    width: tw, height: th, srcW: w, srcH: h, engine: engineLabel, qUsed, ssim, status, notes,
+    bytesIn: buffer.byteLength };
+}
+
+let statusFlag = null;
+let post = (m) => self.postMessage(m);
+
+async function handle(msg) {
+  if (msg.cmd === 'ping') { post({ type: 'ready' }); return; }
+  if (msg.cmd === 'abort') { abortedIds.add(msg.id); return; }
+  if (msg.cmd === 'compress') {
+    statusFlag = null;
+    try {
+      await ensureEngines();
+      const r = await processOne(msg.id, msg.buffer, msg.origType, msg.settings);
+      post({ type: 'done', id: msg.id, result: r, name: msg.name });
+    } catch (e) {
+      if (String(e && e.message).includes('abort') || abortedIds.has(msg.id)) post({ type: 'aborted', id: msg.id });
+      else post({ type: 'error', id: msg.id, message: String(e && e.message || e) });
+    }
+  }
+}
+
+const IS_WORKER = typeof window === 'undefined';
+if (IS_WORKER) {
+  self.onmessage = (e) => handle(e.data);
+} else {
+  // main-thread fallback: bridge replaces postMessage with a direct callback
+  post = (m) => bridgeFn(m);
+}
+let bridgeFn = () => {};
+export function setBridge(fn) { bridgeFn = fn; }
+export { handle };
+</script>
+
+<script type="module">
+/* ================= main thread ================= */
+const $ = (s) => document.querySelector(s);
+const grid = $('#grid'), dropzone = $('#dropzone'), fileInput = $('#fileInput');
+
+/* ---------- i18n (EN default, zh secondary) ---------- */
+const I18N = {
+  'hdg_note': { en: '100% in your browser · no uploads', zh: '100% 浏览器内处理 · 文件不上传' },
+  'hero_t1': { en: 'Compress images', zh: '在浏览器里' },
+  'hero_t2': { en: 'right in your browser', zh: '压缩图片' },
+  'hero_sub': { en: 'Batch up to 20 JPEG, PNG or WebP images. Hit an exact KB target, convert formats, compare quality — your files never leave your device.', zh: '一次批量处理 20 张 JPEG / PNG / WebP 图片。支持精确 KB 目标体积、格式转换、画质对比——文件永不离开你的设备。' },
+  'bdg_priv': { en: 'No uploads · works offline', zh: '零上传 · 可离线使用' },
+  'bdg_oss': { en: 'Open-source WASM engines', zh: '开源 WASM 压缩引擎' },
+  'dz_main': { en: 'Drop up to 20 images here — or click to browse', zh: '把图片拖到这里（最多 20 张）——或点击选择文件' },
+  'dz_sub1': { en: 'JPEG · PNG · WebP · GIF · AVIF · BMP', zh: 'JPEG · PNG · WebP · GIF · AVIF · BMP' },
+  'dz_sub2': { en: 'you can also paste with', zh: '也可以直接粘贴' },
+  'fb_add': { en: '+ add more', zh: '+ 继续添加' },
+  'fb_clear': { en: 'clear all', zh: '清空列表' },
+  'set_mode': { en: 'Mode', zh: '压缩模式' },
+  'mode_smart': { en: 'Smart', zh: '智能' },
+  'mode_target': { en: 'Target size', zh: '目标体积' },
+  'mode_manual': { en: 'Quality', zh: '手动质量' },
+  'hint_smart': { en: "Finds the sweet spot automatically. Files that wouldn't get smaller are left untouched.", zh: '自动寻找画质与体积的最佳平衡点；压不小的文件保持原样不损坏。' },
+  'hint_target': { en: 'Searches for the highest quality that fits under your KB budget, per image.', zh: '为每张图搜索不超 KB 预算的最高画质，装不下时自动缩图兜底。' },
+  'hint_manual': { en: 'You pick the quality (30–100). At 100, WebP switches to true lossless.', zh: '自己决定画质（30–100）。WebP 在 100 时切换为真无损编码。' },
+  'pre_high': { en: 'High quality', zh: '高画质' },
+  'pre_bal': { en: 'Balanced', zh: '均衡' },
+  'pre_ext': { en: 'Max savings', zh: '极限省空间' },
+  'lbl_target': { en: 'Each image under', zh: '每张图控制在' },
+  'set_fmt': { en: 'Output format', zh: '输出格式' },
+  'fmt_auto': { en: 'Auto', zh: '自动' },
+  'hint_fmt': { en: "Auto keeps each image's format. WebP usually compresses 25–35% smaller than JPEG at the same visual quality.", zh: '自动保持原格式。同等画质下 WebP 通常比 JPEG 再小 25–35%。' },
+  'set_dim': { en: 'Max dimension', zh: '最大边长' },
+  'dim_orig': { en: 'Original', zh: '原尺寸' },
+  'hint_dim': { en: 'Large photos for the web rarely need more than 1920px. Resizing uses progressive half-stepping to keep details crisp.', zh: '网页用图很少需要超过 1920px。缩放采用逐级减半算法，细节更锐利。' },
+  'adv_title': { en: 'Advanced engine tuning', zh: '高级引擎调优' },
+  'adv_skip': { en: 'Skip-if-larger guard (recommended)', zh: '“越压越大就跳过”保护（推荐）' },
+  'adv_prog': { en: 'JPEG progressive + optimized Huffman', zh: 'JPEG 渐进式 + 霍夫曼优化' },
+  'adv_sharp': { en: 'WebP sharp YUV (crisper edges, slower)', zh: 'WebP sharp YUV（边缘更锐利，速度稍慢）' },
+  'oxi_fast': { en: 'Fast', zh: '快速' },
+  'oxi_bal': { en: 'Balanced', zh: '均衡' },
+  'oxi_max': { en: 'Max', zh: '极致' },
+  'btn_go': { en: 'Compress images', zh: '开始压缩' },
+  'btn_go_n': { en: 'Compress {n} images', zh: '压缩 {n} 张图片' },
+  'btn_go_again': { en: 'Re-compress with new settings', zh: '用新设置重新压缩' },
+  'btn_cancel': { en: 'Cancel', zh: '取消' },
+  'act_note': { en: 'Nothing is uploaded — compression runs on this device via WebAssembly.', zh: '零上传——压缩通过 WebAssembly 在本机完成。' },
+  'btn_zip': { en: 'Download all (.zip)', zh: '打包下载 (.zip)' },
+  'empty_note': { en: 'Add images to get started — everything stays on your machine.', zh: '添加图片即可开始——一切都在本机完成。' },
+  'how_h': { en: 'How the compression works', zh: '压缩是怎么工作的' },
+  'how_lead': { en: "PicSqueeze compiles the same open-source encoders used by Google's Squoosh to WebAssembly, then adds its own tuning layer on top. Here is exactly what happens to your files:", zh: 'PicSqueeze 将 Google Squoosh 同款开源编码器编译为 WebAssembly，并叠加了自己的调优层。你的文件会经历这些步骤：' },
+  'how_smart': { en: "Quality is chosen by resolution: full-resolution photos get a slightly more aggressive quality than small UI assets, because size hides detail. Every result is checked against the original — if the output isn't smaller, the original file is returned untouched (skip-if-larger).", zh: '画质按分辨率自动选择：大图稍激进、小图更保守。每个结果都会与原文件比对——如果输出没有更小，直接返回原文件（跳过保护）。' },
+  'how_target': { en: "Binary search over the quality range (≤ 8 probes) finds the highest quality that stays under your KB budget. If quality alone can't get there, the image is downscaled in small steps until it fits — and the result is labeled so you know.", zh: '对画质区间做二分搜索（≤ 8 次探测），找到不超 KB 预算的最高画质。画质触底仍超时，自动小幅缩图直至达标，并明确标注。' },
+  'how_ssim': { en: 'Each result gets an SSIM quality score computed against the original — a perceptual metric (0–100%) that approximates what your eyes would notice, so you can trust the savings without pixel-peeping.', zh: '每个结果都有相对原图计算的 SSIM 画质评分（0–100%），模拟人眼感知差异——不用放大镜也能放心相信压缩效果。' },
+  't_engine': { en: 'Engine', zh: '引擎' },
+  't_used_for': { en: 'Used for', zh: '用途' },
+  't_tuning': { en: 'Tuning applied', zh: '应用的调优' },
+  't_moz': { en: 'Progressive scan, optimized Huffman coding, trellis quantization-table search, dimension-aware quality (76 / 72 / 80 rules)', zh: '渐进式扫描、霍夫曼优化、Trellis 量化表搜索、按分辨率自适应画质（76/72/80 规则）' },
+  't_oxi': { en: 'Real lossless optimization — filter & compression-strategy search, alpha channel optimization, 3 effort presets. Pixels stay 100% identical.', zh: '真·无损优化——滤波与压缩策略搜索、Alpha 通道优化、三档力度。像素 100% 不变。' },
+  't_webp': { en: 'Method 5+ encoding, sharp YUV conversion for crisper chroma edges, auto-filter under low quality, SIMD build when available', zh: 'Method 5+ 编码、sharp YUV 色度转换（边缘更锐）、低画质自动滤波、可用时启用 SIMD 版本' },
+  't_guard': { en: 'Skip-if-larger · EXIF/GPS metadata always stripped · 36 MP memory guard · progressive half-step resizing', zh: '跳过保护 · 始终剥离 EXIF/GPS 元数据 · 3600 万像素内存保护 · 逐级减半缩放' },
+  'faq_lead': { en: 'Short answers to the questions people actually ask.', zh: '大家真实会问的问题，直接给答案。' },
+  'cmp_close': { en: 'Close', zh: '关闭' },
+  'cmp_before': { en: 'BEFORE', zh: '原图' },
+  'cmp_after': { en: 'AFTER', zh: '压缩后' },
+  'foot_note': { en: 'Free, open-source image compression that respects your privacy. Your photos are processed locally with WebAssembly and are never uploaded to any server.', zh: '免费开源、尊重隐私的图片压缩。照片通过 WebAssembly 在本地处理，绝不上传到任何服务器。' },
+  'st_queue': { en: 'Ready', zh: '待处理' },
+  'st_decode': { en: 'Decoding…', zh: '解码中…' },
+  'st_resize': { en: 'Resizing…', zh: '缩放中…' },
+  'st_encode': { en: 'Encoding…', zh: '编码中…' },
+  'st_search': { en: 'Searching quality…', zh: '搜索最优画质…' },
+  'st_score': { en: 'Scoring…', zh: '评分中…' },
+  'st_ok': { en: 'Compressed', zh: '压缩完成' },
+  'st_kept': { en: 'Already optimized', zh: '已是最优 · 保留原件' },
+  'st_resized': { en: 'Resized to fit target', zh: '已缩图达标' },
+  'st_missed': { en: 'Target not reached (best effort)', zh: '未达目标（已尽力）' },
+  'st_error': { en: 'Failed', zh: '失败' },
+  't_saved': { en: 'saved', zh: '节省' },
+  't_orig': { en: 'orig', zh: '原' },
+  'btn_cmp': { en: 'Compare', zh: '对比' },
+  'toast_limit': { en: 'Batch limit is 20 images — extra files were not added.', zh: '单批最多 20 张，多余文件未添加。' },
+  'toast_dup': { en: '{n} duplicate file(s) skipped.', zh: '已跳过 {n} 个重复文件。' },
+  'toast_type': { en: '"{name}" is not a supported image type.', zh: '“{name}”不是支持的图片格式。' },
+  'toast_big': { en: '"{name}" is over 80 MB — too large for in-browser processing.', zh: '“{name}”超过 80 MB，超出浏览器处理能力。' },
+  'toast_done': { en: 'Done! Saved {size} ({pct}%) in {sec}s.', zh: '完成！共节省 {size}（{pct}%），用时 {sec} 秒。' },
+  'toast_zip_err': { en: 'Could not build the ZIP file. Please download files individually.', zh: 'ZIP 打包失败，请逐个下载。' },
+  'toast_worker': { en: 'Worker unavailable — switched to main-thread mode.', zh: 'Worker 不可用——已切换为主线程模式。' },
+  'cmp_stats': { en: '{w0}×{h0} → {w1}×{h1} · {s0} → {s1} · {engine}', zh: '{w0}×{h0} → {w1}×{h1} · {s0} → {s1} · {engine}' },
+  'qa': 'FAQ_STORE',
+};
+const FAQ = [
+  { q: { en: 'Are my images uploaded to a server?', zh: '图片会被上传到服务器吗？' },
+    a: { en: '<b>No — never.</b> PicSqueeze runs entirely in your browser via WebAssembly. Your images never leave your device; you can even go offline after the page loads and keep compressing. This makes it safe for screenshots with sensitive data, internal designs and client work.', zh: '<b>永远不会。</b>PicSqueeze 完全通过 WebAssembly 在浏览器内运行，图片不离开你的设备；页面加载完成后断网也能继续用。带敏感信息的截图、内部设计稿、客户文件都可以放心压。' } },
+  { q: { en: 'What formats can I compress, and what do I get?', zh: '支持哪些格式？输出是什么？' },
+    a: { en: 'Input: JPEG, PNG, WebP, GIF (first frame), AVIF, BMP. Output: JPEG (MozJPEG), PNG (OxiPNG, lossless) or WebP (libwebp). In Auto mode each image keeps its own format; switch the output format to convert a whole batch at once — e.g. everything to WebP.', zh: '输入支持 JPEG、PNG、WebP、GIF（取首帧）、AVIF、BMP；输出为 JPEG（MozJPEG）、PNG（OxiPNG，无损）或 WebP（libwebp）。自动模式下保持各自原格式；切换输出格式即可整批转换——比如全部转 WebP。' } },
+  { q: { en: 'Why did my PNG barely shrink (or not at all)?', zh: '为什么 PNG 几乎没变小？' },
+    a: { en: 'PNG is lossless, so OxiPNG can only remove compression slack — never detail. Screenshots and flat UI graphics usually shrink a lot; photos exported as PNG are already tight. For photos, convert to JPEG or WebP: same visual quality, often 5–10× smaller.', zh: 'PNG 是无损格式，OxiPNG 只能榨干压缩冗余，不会损失任何细节。截图和扁平 UI 图通常能小很多；照片导出的 PNG 本身已经很紧。照片建议转 JPEG 或 WebP：观感相同，体积常常只有 1/5–1/10。' } },
+  { q: { en: 'What does Smart mode actually do?', zh: '智能模式具体做了什么？' },
+    a: { en: 'It picks quality by resolution (large photos can hide more artifacts than small UI assets), enables progressive JPEG with trellis table optimization, and applies the skip-if-larger guard: if a re-encoded file would be bigger than the original, you get the original back untouched. You can also choose High quality / Balanced / Max savings presets.', zh: '按分辨率选择画质（大图比小图更能隐藏瑕疵），启用渐进式 JPEG 与 Trellis 量化表优化，并应用“跳过保护”：重编码后若比原文件更大，直接返回原文件。另提供高画质/均衡/极限省空间三档预设。' } },
+  { q: { en: 'How does Target Size mode hit an exact KB number?', zh: '目标体积模式怎么精确到 KB？' },
+    a: { en: 'It binary-searches quality (up to 8 probes) for the highest quality under your budget. If quality alone can’t get there, it downscales in small steps and searches again. PNG is lossless so it can’t chase a KB target — in that case PicSqueeze automatically switches that image to JPEG and tells you in the result.', zh: '对画质做二分搜索（最多 8 次探测），找到预算内最高画质。画质触底仍超标时，逐步缩小尺寸再次搜索。PNG 无损无法追 KB 目标——此时会自动将该图切换为 JPEG 输出，并在结果里注明。' } },
+  { q: { en: 'Is EXIF / GPS metadata removed?', zh: 'EXIF / GPS 元数据会被删除吗？' },
+    a: { en: 'Yes. Re-encoding produces clean images without EXIF, GPS coordinates, camera serials or embedded thumbnails. That is a privacy win when sharing photos — and usually saves a few hundred KB too.', zh: '会。重新编码生成的是干净图片，不含 EXIF、GPS 坐标、相机序列号和内嵌缩略图。分享照片更安全，通常还能再省几百 KB。' } },
+  { q: { en: 'What are the limits?', zh: '有什么限制？' },
+    a: { en: 'Up to 20 images per batch (add another batch afterwards), and ~80 MB per file. The ceiling exists because decoding happens in RAM — a 50 MP photo needs ~200 MB just for raw pixels. Files above 36 MP are gently downscaled to protect stability.', zh: '单批最多 20 张（之后可继续加新批次），单文件约 80 MB 上限。限制源于解码需要占用内存——一张 5000 万像素的照片仅原始像素就需约 200 MB。超过 3600 万像素的文件会自动轻度缩图以保护稳定性。' } },
+  { q: { en: 'What does the SSIM score mean?', zh: 'SSIM 评分是什么意思？' },
+    a: { en: 'SSIM (Structural Similarity) compares the compressed image to the original the way human vision does — structure, contrast and luminance. 98–100% is visually identical for web use; 95–98% is usually fine; below 95% you should compare before trusting it. Use the Compare button to check with your own eyes.', zh: 'SSIM（结构相似性）以人眼的方式（结构、对比度、亮度）比较压缩图与原图。98–100% 对网页用途等同无损；95–98% 通常没问题；低于 95% 建议先对比再采用。点“对比”按钮用肉眼确认。' } },
+  { q: { en: 'Which engines power it? Is it open source?', zh: '用了哪些开源引擎？' },
+    a: { en: 'MozJPEG (Mozilla), OxiPNG and libwebp, compiled to WebAssembly via the open-source jSquash project — the same codecs as Google’s Squoosh — plus fflate for ZIP packaging. PicSqueeze adds its own tuning layer: skip-if-larger, dimension-aware quality, binary-search targeting and SSIM scoring.', zh: 'MozJPEG（Mozilla）、OxiPNG 和 libwebp，经开源项目 jSquash 编译为 WebAssembly——与 Google Squoosh 同源——外加 fflate 做 ZIP 打包。PicSqueeze 在此之上叠加自研调优：跳过保护、按分辨率自适应画质、二分搜索目标体积、SSIM 评分。' } },
+  { q: { en: 'Which browsers are supported?', zh: '支持哪些浏览器？' },
+    a: { en: 'Chrome / Edge 80+, Safari 15.4+, Firefox 114+ — anything with module workers and WebAssembly. If a worker can’t start, PicSqueeze automatically falls back to main-thread mode.', zh: 'Chrome / Edge 80+、Safari 15.4+、Firefox 114+（支持 Module Worker 与 WebAssembly 的浏览器）。Worker 无法启动时自动回退到主线程模式。' } },
+];
+
+let lang = 'en';
+function detectLang() {
+  const u = new URL(location.href);
+  const q = u.searchParams.get('lang');
+  if (q && /^(en|zh)/i.test(q)) return q.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+  const saved = localStorage.getItem('ps_lang');
+  if (saved === 'en' || saved === 'zh') return saved;
+  return navigator.language && navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+}
+function fmt(t, vars) { return t.replace(/\{(\w+)\}/g, (_, k) => vars && k in vars ? vars[k] : `{${k}}`); }
+function tr(key, vars) { const e = I18N[key]; if (!e) return key; return fmt(e[lang] ?? e.en, vars); }
+function applyLang() {
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+  document.title = lang === 'zh'
+    ? 'PicSqueeze — 免费在线图片压缩 · 批量20张 · 隐私安全'
+    : 'PicSqueeze — Free Online Image Compressor · Batch 20 · 100% Private';
+  document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if (I18N[k]) el.textContent = tr(k); });
+  $('#btnLang').textContent = lang === 'zh' ? 'EN' : '中文';
+  buildFaq();
+  updateModeUI(); updateGoLabel(); renderAll(); updateSummary();
+  const u = new URL(location.href);
+  if (lang === 'zh') u.searchParams.set('lang', 'zh'); else u.searchParams.delete('lang');
+  history.replaceState(null, '', u);
+  localStorage.setItem('ps_lang', lang);
+}
+function buildFaq() {
+  $('#faqList').innerHTML = FAQ.map((f, i) =>
+    `<details class="faq"${i === 0 ? ' open' : ''}><summary>${f.q[lang]}</summary><div class="a">${f.a[lang]}</div></details>`).join('');
+}
+
+/* ---------- theme ---------- */
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  localStorage.setItem('ps_theme', t);
+  document.querySelector('meta[name=theme-color]').setAttribute('content', t === 'dark' ? '#0f1118' : '#5b5bd6');
+}
+applyTheme(localStorage.getItem('ps_theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+$('#btnTheme').onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+$('#btnLang').onclick = () => { lang = lang === 'zh' ? 'en' : 'zh'; applyLang(); };
+
+/* ---------- formatting helpers ---------- */
+function fmtBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+  return (b / 1048576).toFixed(2) + ' MB';
+}
+const escapeHtml = (s) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+/* ---------- toasts ---------- */
+function toast(msg, kind = '') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + kind; el.textContent = msg;
+  $('#toasts').appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 320); }, 4200);
+}
+
+/* ---------- state ---------- */
+const MAX_FILES = 20, MAX_BYTES = 80 * 1048576;
+const files = new Map(); // id -> {id, file, name, bytes, url, status, result, thumbUrl, outUrl}
+let nextId = 1, running = false, hasRun = false;
+
+const settings = { mode: 'smart', preset: 'balanced', targetKB: 200, quality: 80, fmt: 'auto', maxDim: 0, skipLarger: true, progressive: true, sharpYuv: true, oxiLevel: 2 };
+try { Object.assign(settings, JSON.parse(localStorage.getItem('ps_settings') || '{}')); } catch (e) {}
+function saveSettings() { localStorage.setItem('ps_settings', JSON.stringify(settings)); }
+
+function segInit(sel, key, cb) {
+  const root = $(sel);
+  root.querySelectorAll('button').forEach(b => {
+    b.classList.toggle('on', String(b.dataset.v) === String(settings[key]));
+    b.onclick = () => {
+      root.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+      b.classList.add('on'); settings[key] = isNaN(Number(b.dataset.v)) ? b.dataset.v : Number(b.dataset.v);
+      saveSettings(); cb && cb();
+    };
+  });
+}
+segInit('#segMode', 'mode', updateModeUI);
+segInit('#segPreset', 'preset');
+segInit('#segFmt', 'fmt');
+segInit('#segDim', 'maxDim');
+segInit('#segOxi', 'oxiLevel');
+$('#targetKB').value = settings.targetKB;
+$('#targetKB').oninput = e => { settings.targetKB = clampNum(e.target.value, 5, 10240, 200); saveSettings(); };
+$('#qualityRange').value = settings.quality;
+$('#qualityVal').textContent = settings.quality;
+$('#qualityRange').oninput = e => { settings.quality = Number(e.target.value); $('#qualityVal').textContent = settings.quality; saveSettings(); };
+function clampNum(v, lo, hi, dflt) { const n = Number(v); return isNaN(n) ? dflt : Math.min(hi, Math.max(lo, Math.round(n))); }
+$('#chkSkipLarger').checked = settings.skipLarger;
+$('#chkProgressive').checked = settings.progressive;
+$('#chkSharpYuv').checked = settings.sharpYuv;
+$('#chkSkipLarger').onchange = e => { settings.skipLarger = e.target.checked; saveSettings(); };
+$('#chkProgressive').onchange = e => { settings.progressive = e.target.checked; saveSettings(); };
+$('#chkSharpYuv').onchange = e => { settings.sharpYuv = e.target.checked; saveSettings(); };
+
+function updateModeUI() {
+  const m = settings.mode;
+  $('#presetRow').style.display = m === 'smart' ? '' : 'none';
+  $('#targetRow').style.display = m === 'target' ? '' : 'none';
+  $('#qualityRow').style.display = m === 'manual' ? '' : 'none';
+  $('#modeHint').textContent = tr(m === 'smart' ? 'hint_smart' : m === 'target' ? 'hint_target' : 'hint_manual');
+}
+function updateGoLabel() {
+  const b = $('#btnGo');
+  if (running) return;
+  b.disabled = files.size === 0;
+  if (hasRun && files.size) b.innerHTML = '⚡ ' + tr('btn_go_again');
+  else b.innerHTML = files.size ? '⚡ ' + tr('btn_go_n', { n: files.size }) : '⚡ ' + tr('btn_go');
+}
+
+/* ---------- file intake ---------- */
+dropzone.onclick = () => fileInput.click();
+dropzone.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } };
+$('#btnAddMore').onclick = () => fileInput.click();
+fileInput.onchange = e => { addFiles([...e.target.files]); fileInput.value = ''; };
+['dragover', 'dragenter'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
+['dragleave', 'drop'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); if (ev === 'drop' || e.target === document.documentElement) dropzone.classList.remove('drag'); }));
+document.addEventListener('drop', e => { if (e.dataTransfer?.files?.length) addFiles([...e.dataTransfer.files]); });
+document.addEventListener('paste', e => {
+  const fs = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/'));
+  if (fs.length) { addFiles(fs); e.preventDefault(); }
+});
+$('#btnClear').onclick = () => { files.clear(); grid.innerHTML = ''; hasRun = false; refreshBar(); updateSummary(); updateGoLabel(); };
+
+function addFiles(list) {
+  let added = 0, dups = 0, badType = 0, tooBig = 0;
+  for (const f of list) {
+    if (f.size < 64 || (!f.type.startsWith('image/') && !/\.(jpe?g|png|webp|gif|avif|bmp|svg)$/i.test(f.name))) { badType++; continue; }
+    if (f.size > MAX_BYTES) { tooBig++; continue; }
+    const sig = `${f.name}|${f.size}|${f.lastModified}`;
+    let dup = false;
+    files.forEach(x => { if (x.sig === sig) dup = true; });
+    if (dup) { dups++; continue; }
+    if (files.size >= MAX_FILES) { toast(tr('toast_limit'), 'warn'); break; }
+    const id = nextId++;
+    const item = { id, file: f, name: f.name, bytes: f.size, sig, url: URL.createObjectURL(f), status: 'queue', result: null };
+    files.set(id, item);
+    renderCard(item);
+    added++;
+  }
+  if (dups) toast(tr('toast_dup', { n: dups }), 'warn');
+  if (badType) toast(tr('toast_type', { name: list[0].name }), 'err');
+  if (tooBig) toast(tr('toast_big', { name: list[0].name }), 'err');
+  if (added) { $('#emptyNote').style.display = 'none'; }
+  refreshBar(); updateGoLabel();
+}
+function refreshBar() {
+  const bar = $('#filebar');
+  bar.classList.toggle('show', files.size > 0);
+  $('#fileCount').textContent = `${files.size}/${MAX_FILES}`;
+  let total = 0; files.forEach(f => total += f.bytes);
+  $('#fileTotal').textContent = fmtBytes(total);
+}
+
+/* ---------- rendering ---------- */
+const STATUS_KEY = { queue: 'st_queue', decode: 'st_decode', resize: 'st_resize', encode: 'st_encode', search: 'st_search', score: 'st_score', ok: 'st_ok', kept: 'st_kept', resized: 'st_resized', missed: 'st_missed', error: 'st_error', aborted: 'st_queue' };
+const STATUS_KIND = { ok: 'ok', kept: 'keep', resized: 'warn', missed: 'warn', error: 'err' };
+
+function noteText(item) {
+  const r = item.result; if (!r) return '';
+  const bits = [];
+  if (r.engine && r.engine) bits.push(r.engine);
+  if (r.ssim != null) bits.push('SSIM ' + r.ssim.toFixed(1) + '%');
+  return bits.join(' · ');
+}
+function renderCard(item) {
+  let el = document.getElementById('card-' + item.id);
+  const isNew = !el;
+  if (isNew) {
+    el = document.createElement('div'); el.className = 'card'; el.id = 'card-' + item.id;
+    grid.appendChild(el);
+  }
+  const r = item.result;
+  const stKey = STATUS_KEY[item.status] || 'st_queue';
+  const kind = STATUS_KIND[item.status];
+  const outUrl = r ? URL.createObjectURL(new Blob([r.bytes], { type: r.mime })) : null;
+  if (item.prevOut) URL.revokeObjectURL(item.prevOut);
+  item.prevOut = outUrl;
+  const savedTxt = r ? (r.bytes.length <= item.bytes ? `−${(100 - r.bytes.length / item.bytes * 100).toFixed(1)}%` : `+${((r.bytes.length / item.bytes - 1) * 100).toFixed(1)}%`) : '';
+  el.innerHTML = `
+    <img class="thumb" src="${item.url}" alt="" id="thumb-${item.id}" ${r ? 'data-cmp="1"' : ''}>
+    <div class="body">
+      <div class="name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+      <div class="nums">${r
+        ? `<b>${fmtBytes(item.bytes)}</b> → <b>${fmtBytes(r.bytes.length)}</b> · <span style="color:${r.bytes.length <= item.bytes ? 'var(--good)' : 'var(--warn)'}">${savedTxt}</span>${r.width !== null ? ` · ${r.width}×${r.height}` : ''}`
+        : `${fmtBytes(item.bytes)}`}</div>
+      <div class="engine">${isNew || !r ? '' : escapeHtml(noteText(item))}</div>
+      <div class="row2">
+        <span class="pill ${kind || 'queue'}" id="pill-${item.id}">${tr(stKey)}</span>
+        ${r ? `<span class="pill fmt">${r.ext.toUpperCase()}</span>` : ''}
+        <div class="acts">
+          ${r ? `<button data-cmp="${item.id}">${tr('btn_cmp')}</button>` : ''}
+          ${r ? `<button data-dl="${item.id}">⬇ ${fmtBytes(r.bytes.length)}</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  item.cardEl = el;
+  el.querySelectorAll('[data-dl]').forEach(b => b.onclick = () => downloadItem(Number(b.dataset.dl)));
+  el.querySelectorAll('[data-cmp]').forEach(b => { if (b.dataset.cmp !== '1' || b.tagName === 'BUTTON') b.onclick = () => openCompare(Number(b.dataset.cmp)); });
+  const th = el.querySelector('.thumb');
+  if (r) th.onclick = () => openCompare(item.id);
+}
+function setStatus(id, status) {
+  const item = files.get(id); if (!item) return;
+  item.status = status;
+  const pill = document.getElementById('pill-' + id);
+  if (pill) {
+    pill.className = 'pill ' + (STATUS_KIND[status] || 'queue');
+    pill.textContent = tr(STATUS_KEY[status] || 'st_queue');
+  }
+}
+function renderAll() { files.forEach(item => renderCard(item)); }
+
+function updateSummary() {
+  const sum = $('#summary');
+  let done = 0, bytesIn = 0, bytesOut = 0, kept = 0;
+  files.forEach(f => {
+    if (f.result && ['ok', 'kept', 'resized', 'missed'].includes(f.status)) {
+      done++;
+      bytesIn += f.bytes;
+      bytesOut += f.result.bytes.length;
+      if (f.status === 'kept') kept++;
+    }
+  });
+  if (!done) { sum.classList.remove('show'); return; }
+  sum.classList.add('show');
+  const saved = bytesIn - bytesOut;
+  const pct = bytesIn ? (saved / bytesIn * 100) : 0;
+  if (saved >= 0) {
+    $('#sumBig').innerHTML = `${fmtBytes(bytesIn)} → ${fmtBytes(bytesOut)} · <span class="saved">−${pct.toFixed(1)}%</span> <span style="font-weight:400;color:var(--muted);font-size:14px">${tr('t_saved')}</span>`;
+  } else {
+    $('#sumBig').innerHTML = `${fmtBytes(bytesIn)} → ${fmtBytes(bytesOut)} · <span style="color:var(--warn)">+${Math.abs(pct).toFixed(1)}%</span> <span style="font-weight:400;color:var(--muted);font-size:14px">${lang === 'zh' ? '（当前设置下变大）' : '(larger with current settings)'}</span>`;
+  }
+  $('#sumMeta').textContent = `${done} ${lang === 'zh' ? '张' : 'images'}${kept ? ` · ${kept} ${lang === 'zh' ? '张保留原文件' : 'kept original'}` : ''}${batchSec ? ` · ${batchSec.toFixed(1)}s` : ''}`;
+}
+let batchSec = 0;
+
+function downloadItem(id) {
+  const item = files.get(id); if (!item?.result) return;
+  const r = item.result;
+  const base = item.name.replace(/\.[^.]+$/, '');
+  const a = document.createElement('a');
+  a.href = item.prevOut;
+  a.download = `${base}.min.${r.ext}`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ---------- zip ---------- */
+async function downloadZip() {
+  const items = [];
+  files.forEach(f => { if (f.result) items.push(f); });
+  if (!items.length) return;
+  btnZipBusy(true);
+  try {
+    let fflate;
+    try { fflate = await import('https://cdn.jsdelivr.net/npm/fflate@0.8.2/esm/browser.js'); }
+    catch (e) { fflate = await import('https://unpkg.com/fflate@0.8.2/esm/browser.js'); }
+    const used = {};
+    const entries = [];
+    items.forEach(f => {
+      const base = f.name.replace(/\.[^.]+$/, '');
+      let nm = `${base}.min.${f.result.ext}`, k = 2;
+      while (used[nm]) { nm = `${base} (${k++}).min.${f.result.ext}`; }
+      used[nm] = 1;
+      entries.push([nm, f.result.bytes]);
+    });
+    const zipped = fflate.zipSync(Object.fromEntries(entries), { level: 0 });
+    const blob = new Blob([zipped], { type: 'application/zip' });
+    const d = new Date();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `picsqueeze-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.zip`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+  } catch (e) { toast(tr('toast_zip_err'), 'err'); }
+  btnZipBusy(false);
+}
+function btnZipBusy(b) { $('#btnZip').disabled = b; }
+$('#btnZip').onclick = downloadZip;
+
+/* ---------- engine bridge (worker, fallback main thread) ---------- */
+let engineHandle = null, workerMode = false;
+let activeMsg = null;
+function bridgeMessage(m) {
+  if (m.type === 'stage') setStatus(m.id, m.stage);
+  else if (m.type === 'done') {
+    const item = files.get(m.id);
+    if (item) {
+      item.result = m.result;
+      setStatus(m.id, m.result.status || 'ok');
+      renderCard(item);
+      updateSummary();
+    }
+  } else if (m.type === 'error') {
+    const item = files.get(m.id);
+    if (item) { item.result = null; setStatus(m.id, 'error'); item.error = m.message; }
+    console.error('compress error:', m.message);
+  } else if (m.type === 'aborted') {
+    setStatus(m.id, 'queue');
+  }
+}
+async function initEngine() {
+  const src = document.getElementById('engineSrc').textContent;
+  const blobUrl = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+  try {
+    const w = new Worker(blobUrl, { type: 'module' });
+    await new Promise((res, rej) => {
+      w.onmessage = (e) => { if (e.data?.type === 'ready') res(); };
+      w.onerror = (e) => rej(new Error('worker error: ' + (e.message || '')));
+      setTimeout(() => rej(new Error('worker init timeout')), 3000);
+      w.postMessage({ cmd: 'ping' });
+    });
+    w.onmessage = (e) => bridgeMessage(e.data);
+    workerMode = true;
+    engineHandle = (msg, transfer) => w.postMessage(msg, transfer || []);
+  } catch (e) {
+    // main-thread fallback: import the same engine source as a module
+    console.warn('module worker unavailable, falling back to main thread:', e.message);
+    const mod = await import(blobUrl);
+    mod.setBridge((m) => bridgeMessage(m));
+    engineHandle = (msg) => mod.handle(msg);
+  }
+}
+function compressOne(item) {
+  return new Promise(async (resolve) => {
+    const prevDone = activeDone;
+    activeDone = (m) => { if (m.id === item.id) { activeDone = prevDone; resolve(m); } else prevDone && prevDone(m); };
+    try {
+      const buf = await item.file.arrayBuffer();
+      engineHandle({ cmd: 'compress', id: item.id, buffer: buf, name: item.name, origType: item.file.type, settings: { ...settings } }, [buf]);
+    } catch (e) {
+      activeDone = prevDone;
+      resolve({ type: 'error', id: item.id, message: String(e) });
+    }
+  });
+}
+let activeDone = null;
+// route bridge 'done' through the waiting promise
+const _bridge = bridgeMessage;
+bridgeMessage = function (m) {
+  if (m.type === 'done' || m.type === 'error' || m.type === 'aborted') { activeDone && activeDone(m); }
+  _bridge(m);
+};
+
+/* ---------- run ---------- */
+let abortRequested = false;
+$('#btnGo').onclick = async () => {
+  if (running) return;
+  if (!files.size) return;
+  running = true; abortRequested = false;
+  $('#btnGo').disabled = true;
+  $('#btnCancel').style.display = '';
+  $('#btnGo').innerHTML = '⏳ ' + (lang === 'zh' ? '压缩中…' : 'Compressing…');
+  document.querySelectorAll('.settings, details.adv').forEach(el => { el.style.pointerEvents = 'none'; el.style.opacity = '.6'; });
+  const t0 = performance.now();
+  $('#progress').classList.add('show');
+  let done = 0; const total = files.size;
+  const queue = [...files.values()];
+  queue.forEach(f => { f.result = null; setStatus(f.id, 'queue'); renderCard(f); });
+  updateSummary();
+  for (const item of queue) {
+    if (abortRequested) { break; }
+    const msg = await compressOne(item);
+    done++;
+    const pct = done / total * 100;
+    $('#progFill').style.width = pct + '%';
+    $('#progText').textContent = `${done}/${total}`;
+    const el = (performance.now() - t0) / 1000;
+    $('#progEta').textContent = `${el.toFixed(0)}s`;
+  }
+  batchSec = (performance.now() - t0) / 1000;
+  running = false; hasRun = true;
+  $('#btnCancel').style.display = 'none';
+  $('#btnGo').disabled = false;
+  document.querySelectorAll('.settings, details.adv').forEach(el => { el.style.pointerEvents = ''; el.style.opacity = ''; });
+  updateGoLabel(); updateSummary();
+  $('#progress').classList.remove('show');
+  let sIn = 0, sOut = 0;
+  files.forEach(f => { if (f.result) { sIn += f.bytes; sOut += f.result.bytes.length; } });
+  if (!abortRequested && sIn) toast(tr('toast_done', { size: fmtBytes(Math.max(0, sIn - sOut)), pct: (100 - sOut / sIn * 100).toFixed(1), sec: batchSec.toFixed(1) }));
+};
+$('#btnCancel').onclick = () => {
+  abortRequested = true;
+  files.forEach(f => { if (!f.result && f.status !== 'ok' && f.status !== 'kept' && f.status !== 'error') engineHandle({ cmd: 'abort', id: f.id }); });
+};
+
+/* ---------- compare modal ---------- */
+let cmpItem = null;
+function openCompare(id) {
+  const item = files.get(id); if (!item?.result) return;
+  cmpItem = item;
+  const r = item.result;
+  $('#cmpName').textContent = item.name;
+  $('#cmpStats').textContent = tr('cmp_stats', {
+    w0: r.srcW ?? '—', h0: r.srcH ?? '—', w1: r.width, h1: r.height,
+    s0: fmtBytes(item.bytes), s1: fmtBytes(r.bytes.length), engine: r.engine,
+  });
+  $('#cmpBefore').src = item.url;
+  $('#cmpAfter').src = item.prevOut;
+  $('#cmpRange').value = 50;
+  $('#cmp').classList.add('show');
+  // wait for the before-image to lay out, then align the overlay
+  const align = () => layoutCompare();
+  if ($('#cmpBefore').complete) requestAnimationFrame(align);
+  else $('#cmpBefore').onload = () => requestAnimationFrame(align);
+}
+function layoutCompare() {
+  if (!cmpItem) return;
+  const stage = $('#cmpStage');
+  const before = $('#cmpBefore');
+  const after = $('#cmpAfter');
+  const wrap = $('#cmpAfterWrap');
+  const v = Number($('#cmpRange').value);
+  // position the "after" overlay exactly over the rendered "before" image
+  const bw = before.clientWidth, bh = before.clientHeight;
+  const ox = before.offsetLeft, oy = before.offsetTop;
+  wrap.style.left = ox + 'px'; wrap.style.top = oy + 'px';
+  wrap.style.width = (bw * v / 100) + 'px';
+  wrap.style.height = bh + 'px';
+  after.style.position = 'absolute';
+  after.style.left = '0'; after.style.top = '0';
+  after.style.width = bw + 'px'; after.style.height = bh + 'px';
+  after.style.maxWidth = 'none'; after.style.maxHeight = 'none';
+}
+$('#cmpRange').oninput = layoutCompare;
+$('#btnCmpClose').onclick = () => { $('#cmp').classList.remove('show'); cmpItem = null; };
+$('#cmp').onclick = e => { if (e.target === $('#cmp')) { $('#cmp').classList.remove('show'); cmpItem = null; } };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('#cmp').classList.remove('show'); cmpItem = null; } });
+
+/* ---------- boot ---------- */
+lang = detectLang();
+applyLang();
+refreshBar();
+initEngine().catch(e => { console.warn(e); toast(tr('toast_worker'), 'warn'); });
+document.querySelectorAll('.settings, details.adv').forEach(el => { el.style.opacity = ''; });
+
+// console/test hook: lets automation and power users drive the app programmatically
+window.__ps = {
+  add: (list) => addFiles([...list]),
+  files,
+  settings,
+  run: () => $('#btnGo').click(),
+  seg: (sel, v) => { const b = [...$(sel).querySelectorAll('button')].find(x => String(x.dataset.v) === String(v)); if (b) b.click(); },
+  setLang: (l) => { lang = l; applyLang(); },
+};
+</script>
+<!-- Cloudflare Web Analytics beacon will be inserted before </body> once the token is provided -->
+</body>
+</html>
