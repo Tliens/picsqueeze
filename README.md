@@ -4,7 +4,7 @@
 
 Free, private, batch image compression — entirely in your browser. **No uploads, ever.**
 
-**Live site:** https://tliens.github.io/picsqueeze/
+**Live site:** https://picsqueeze.kuige.me/
 
 Compress up to **20 images per batch** (JPEG / PNG / WebP input) with:
 
