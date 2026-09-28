@@ -960,8 +960,10 @@ const I18N = {
   'btn_cmp': { en: 'Compare', zh: '对比' },
   'toast_limit': { en: 'Batch limit is 20 images — extra files were not added.', zh: '单批最多 20 张，多余文件未添加。' },
   'toast_dup': { en: '{n} duplicate file(s) skipped.', zh: '已跳过 {n} 个重复文件。' },
-  'toast_type': { en: '"{name}" is not a supported image type.', zh: '“{name}”不是支持的图片格式。' },
-  'toast_big': { en: '"{name}" is over 80 MB — too large for in-browser processing.', zh: '“{name}”超过 80 MB，超出浏览器处理能力。' },
+  'toast_type': { en: '{n} file(s) skipped — unsupported image type (e.g. "{name}").', zh: '{n} 个文件已跳过——不支持的图片格式（如“{name}”）。' },
+  'toast_heic': { en: '{n} HEIC file(s) skipped (e.g. "{name}") — that\'s the iPhone format. Convert to JPG first, then re-add.', zh: '{n} 个 HEIC 文件已跳过（如“{name}”）——这是 iPhone 拍摄格式，请先转成 JPG 再添加。' },
+  'toast_big': { en: '{n} file(s) over 80 MB skipped (e.g. "{name}") — too large for in-browser processing.', zh: '{n} 个超过 80 MB 的文件已跳过（如“{name}”），超出浏览器处理能力。' },
+  'toast_engine': { en: '"{name}" failed: {msg}. Other files were not affected.', zh: '“{name}”处理失败：{msg}。其他文件不受影响。' },
   'toast_done': { en: 'Done! Saved {size} ({pct}%) in {sec}s.', zh: '完成！共节省 {size}（{pct}%），用时 {sec} 秒。' },
   'toast_zip_err': { en: 'Could not build the ZIP file. Please download files individually.', zh: 'ZIP 打包失败，请逐个下载。' },
   'toast_worker': { en: 'Worker unavailable — switched to main-thread mode.', zh: 'Worker 不可用——已切换为主线程模式。' },
@@ -1115,9 +1117,14 @@ document.addEventListener('paste', e => {
 $('#btnClear').onclick = () => { files.clear(); grid.innerHTML = ''; hasRun = false; refreshBar(); updateSummary(); updateGoLabel(); };
 
 function addFiles(list) {
-  let added = 0, dups = 0, badType = 0, tooBig = 0;
+  let added = 0, dups = 0, tooBig = 0;
+  const badNames = [], heicNames = [];
+  const isHeic = (f) => /hei[cf]/i.test(f.type) || /\.hei[cf]$/i.test(f.name);
   for (const f of list) {
-    if (f.size < 64 || (!f.type.startsWith('image/') && !/\.(jpe?g|png|webp|gif|avif|bmp|svg)$/i.test(f.name))) { badType++; continue; }
+    if (isHeic(f)) { heicNames.push(f.name); continue; } // reject iPhone HEIC up front — most browsers can't decode it
+    if (f.size < 64 || (!f.type.startsWith('image/') && !/\.(jpe?g|png|webp|gif|avif|bmp|svg)$/i.test(f.name))) {
+      badNames.push(f.name); continue;
+    }
     if (f.size > MAX_BYTES) { tooBig++; continue; }
     const sig = `${f.name}|${f.size}|${f.lastModified}`;
     let dup = false;
@@ -1131,8 +1138,9 @@ function addFiles(list) {
     added++;
   }
   if (dups) toast(tr('toast_dup', { n: dups }), 'warn');
-  if (badType) toast(tr('toast_type', { name: list[0].name }), 'err');
-  if (tooBig) toast(tr('toast_big', { name: list[0].name }), 'err');
+  if (heicNames.length) toast(tr('toast_heic', { n: heicNames.length, name: heicNames[0] }), 'err');
+  if (badNames.length) toast(tr('toast_type', { n: badNames.length, name: badNames[0] }), 'err');
+  if (tooBig) toast(tr('toast_big', { n: tooBig, name: list[0].name }), 'err');
   if (added) { $('#emptyNote').style.display = 'none'; }
   refreshBar(); updateGoLabel();
 }
@@ -1274,7 +1282,10 @@ $('#btnZip').onclick = downloadZip;
 let engineHandle = null, workerMode = false;
 let activeMsg = null;
 function bridgeMessage(m) {
-  if (m.type === 'stage') setStatus(m.id, m.stage);
+  if (m.type === 'stage') {
+    if (pendingJob && m.id === pendingJob.id) armWatchdog(); // progress → reset the watchdog
+    setStatus(m.id, m.stage);
+  }
   else if (m.type === 'done') {
     const item = files.get(m.id);
     if (item) {
@@ -1286,42 +1297,71 @@ function bridgeMessage(m) {
   } else if (m.type === 'error') {
     const item = files.get(m.id);
     if (item) { item.result = null; setStatus(m.id, 'error'); item.error = m.message; }
-    console.error('compress error:', m.message);
+    toast(tr('toast_engine', { name: item?.name || '?', msg: String(m.message).slice(0, 90) }), 'err');
   } else if (m.type === 'aborted') {
     setStatus(m.id, 'queue');
   }
 }
 async function initEngine() {
   const src = document.getElementById('engineSrc').textContent;
-  const blobUrl = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+  engineBlobUrl = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
   try {
-    const w = new Worker(blobUrl, { type: 'module' });
-    await new Promise((res, rej) => {
-      w.onmessage = (e) => { if (e.data?.type === 'ready') res(); };
-      w.onerror = (e) => rej(new Error('worker error: ' + (e.message || '')));
-      setTimeout(() => rej(new Error('worker init timeout')), 3000);
-      w.postMessage({ cmd: 'ping' });
-    });
-    w.onmessage = (e) => bridgeMessage(e.data);
+    worker = await createWorker();
     workerMode = true;
-    engineHandle = (msg, transfer) => w.postMessage(msg, transfer || []);
+    engineHandle = (msg, transfer) => worker.postMessage(msg, transfer || []);
   } catch (e) {
     // main-thread fallback: import the same engine source as a module
     console.warn('module worker unavailable, falling back to main thread:', e.message);
-    const mod = await import(blobUrl);
+    const mod = await import(engineBlobUrl);
     mod.setBridge((m) => bridgeMessage(m));
     engineHandle = (msg) => mod.handle(msg);
   }
 }
+let engineBlobUrl = null, worker = null, engineDead = false, pendingJob = null, jobTimer = null;
+async function createWorker() {
+  const w = new Worker(engineBlobUrl, { type: 'module' });
+  await new Promise((res, rej) => {
+    w.onmessage = (e) => { if (e.data?.type === 'ready') res(); };
+    w.onerror = (e) => rej(new Error('worker error: ' + (e.message || '')));
+    setTimeout(() => rej(new Error('worker init timeout')), 3000);
+    w.postMessage({ cmd: 'ping' });
+  });
+  w.onmessage = (e) => bridgeMessage(e.data);
+  // a crashed worker (e.g. OOM on a huge image) must not stall the batch queue
+  w.onerror = (e) => { console.warn('engine worker crashed:', e.message || e); engineDead = true; failPending('Engine crashed on this file — it may be too large. Try a smaller max dimension.'); };
+  w.onmessageerror = () => { engineDead = true; failPending('Engine crashed on this file — it may be too large.'); };
+  return w;
+}
+function armWatchdog() {
+  clearTimeout(jobTimer);
+  // generous: AVIF target-search on huge images can legitimately take minutes
+  jobTimer = setTimeout(() => {
+    engineDead = true;
+    try { worker?.terminate(); worker = null; } catch (e) {}
+    failPending('No progress for 5 minutes — skipped. Try a smaller max dimension.');
+  }, 300000);
+}
+function failPending(message) {
+  clearTimeout(jobTimer); jobTimer = null;
+  const pj = pendingJob; pendingJob = null;
+  if (pj) pj.resolve({ type: 'error', id: pj.id, message });
+}
 function compressOne(item) {
   return new Promise(async (resolve) => {
     const prevDone = activeDone;
-    activeDone = (m) => { if (m.id === item.id) { activeDone = prevDone; resolve(m); } else prevDone && prevDone(m); };
+    activeDone = (m) => { if (m.id === item.id) { activeDone = prevDone; pendingJob = null; clearTimeout(jobTimer); resolve(m); } else prevDone && prevDone(m); };
+    pendingJob = { id: item.id, resolve };
     try {
+      // a worker that crashed on the previous file is rebuilt here, before this one starts
+      if (workerMode && (!worker || engineDead)) {
+        try { worker = await createWorker(); } catch (e) { engineDead = true; }
+      }
       const buf = await item.file.arrayBuffer();
       engineHandle({ cmd: 'compress', id: item.id, buffer: buf, name: item.name, origType: item.file.type, settings: { ...settings } }, [buf]);
+      armWatchdog();
     } catch (e) {
-      activeDone = prevDone;
+      activeDone = prevDone; pendingJob = null; clearTimeout(jobTimer);
+      if (workerMode) { engineDead = true; }
       resolve({ type: 'error', id: item.id, message: String(e) });
     }
   });
