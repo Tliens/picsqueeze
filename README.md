@@ -6,7 +6,7 @@ Free, private, batch image compression — entirely in your browser. **No upload
 
 **Live site:** https://picsqueeze.kuige.me/
 
-Compress up to **20 images per batch** (JPEG / PNG / WebP input) with:
+Compress up to **20 images per batch** (JPEG / PNG / WebP / AVIF input) with:
 
 - 🧠 **Smart mode** — dimension-aware quality + skip-if-larger guard (a file that wouldn't get smaller is returned untouched)
 - 🎯 **Target size** — binary-searches the highest quality that fits under a KB budget; auto-downscales as a last resort
@@ -26,6 +26,7 @@ inside a **module worker** so the UI never blocks:
 | [MozJPEG](https://github.com/mozilla/mozjpeg) | JPEG | progressive scan, optimized Huffman, trellis quant-table search, dimension-aware quality |
 | [OxiPNG](https://github.com/shssoichiro/oxipng) | PNG (lossless) | filter/strategy search, alpha optimization, 3 effort presets — pixels stay 100% identical |
 | [libwebp](https://github.com/webmproject/libwebp) | WebP | method 5+, sharp YUV, auto-filter under q70, SIMD build when available |
+| libaom (AVIF) | AVIF | speed 6–8, AVIF-tuned quality curve (q52 ≈ WebP q80 visually), lazily loaded codec (~3.5 MB) |
 
 Guards: skip-if-larger · EXIF/GPS always stripped · 36 MP memory guard · 80 MB / 20-file batch limits.
 
