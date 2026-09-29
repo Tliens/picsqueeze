@@ -6,7 +6,7 @@ Free, private, batch image compression — entirely in your browser. **No upload
 
 **Live site:** https://picsqueeze.kuige.me/
 
-Compress up to **20 images per batch** (JPEG / PNG / WebP / AVIF input) with:
+Compress up to **50 images per batch** (JPEG / PNG / WebP / AVIF input) with:
 
 - 🧠 **Smart mode** — dimension-aware quality + skip-if-larger guard (a file that wouldn't get smaller is returned untouched)
 - 🎯 **Target size** — binary-searches the highest quality that fits under a KB budget; auto-downscales as a last resort
